@@ -13,6 +13,17 @@ dependencies:
   provider: ^6.0.0
   http: ^1.1.0
   intl: ^0.18.0
+  flutter_rating_bar: ^4.0.1
+  google_maps_flutter: ^2.2.6
+  
+  # Optionnel pour les polylines
+  flutter_polyline_points: ^3.1.0
+  
+  # Pour la géolocalisation
+  geolocator: ^10.0.0
+  
+  # Pour les permissions
+  permission_handler: ^10.4.0
 
 dev_dependencies:
   flutter_test:
@@ -21,4 +32,3 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  

@@ -2,6 +2,7 @@
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:flutter/material.dart';
 
+
 class GraphQLService {
   // URL du backend - ADAPTE SELON TON ÉMULATEUR
   //static const String graphqlUrl = 'http://10.0.2.2:4001/graphql'; // Android
@@ -18,47 +19,32 @@ class GraphQLService {
 
   // ============ QUERIES ============
   
-  static String get restaurantsQuery => '''
-    query GetRestaurants(\$cuisine: String, \$isOpen: Boolean) {
-      restaurants(cuisine: \$cuisine, isOpen: \$isOpen) {
-        id
-        name
-        cuisine
-        rating
-        deliveryTime
-        isOpen
-        address
-        imageUrl
-        minOrder
-        isFavorite
-      }
-    }
-  ''';
 
-  static String get restaurantQuery => '''
-    query GetRestaurant(\$id: ID!) {
-      restaurant(id: \$id) {
+  static String restaurantQuery = '''
+  query GetRestaurant(\$id: ID!) {
+    restaurant(id: \$id) {
+      id
+      name
+      cuisine
+      rating
+      deliveryTime
+      address
+      imageUrl
+      minOrder
+      isOpen
+      menu {
         id
         name
-        cuisine
-        rating
-        deliveryTime
-        isOpen
-        address
-        imageUrl
-        minOrder
-        menu {
-          id
-          name
-          description
-          price
-          category
-          available
-        }
-        isFavorite
+        description
+        price
+        category
+        available
       }
     }
-  ''';
+  }
+''';
+
+
 
   static String get dashboardQuery => '''
     query GetDashboard {
@@ -167,21 +153,53 @@ class GraphQLService {
   ''';
 
   static String get placeOrderMutation => '''
-    mutation PlaceOrder(\$input: OrderInput!) {
-      placeOrder(input: \$input) {
-        order {
-          id
-          status
-          total
-          estimatedDelivery
+  mutation PlaceOrder(\$input: OrderInput!) {
+    placeOrder(input: \$input) {
+      order {
+        id
+        status
+        total
+        deliveryAddress
+        estimatedDelivery
+        items {
+          name
+          quantity
+          price
         }
-        paymentIntent {
+        restaurant {
           id
-          clientSecret
+          name
         }
+        driver {
+          id
+          name
+          phone
+        }
+        createdAt
+      }
+      paymentIntent {
+        id
+        clientSecret
+        amount
+        currency
       }
     }
-  ''';
+  }
+''';
+  static const String toggleFavoriteMutation = '''
+  mutation ToggleFavorite(\$restaurantId: ID!) {
+    toggleFavorite(restaurantId: \$restaurantId) {
+      id
+      favorites {
+        id
+        name
+        isFavorite
+      }
+    }
+  }
+''';
+
+
 
   // ============ MÉTHODES UTILES ============
   

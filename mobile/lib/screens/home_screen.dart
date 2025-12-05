@@ -1,261 +1,156 @@
-// lib/screens/home_screen.dart
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'restaurant_detail_screen.dart';
+import 'checkout_screen.dart'; // Assure-toi d'importer ton écran de panier
+import '/widgets/cart_badge.dart'; // Assure-toi que CartBadge est défini
+import '/widgets/cart_bottom_sheet.dart'; // Assure-toi que CartBottomSheet est défini
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
-  // Query simplifiée
-  static const String restaurantsQuery = '''
-    query GetRestaurants {
-      restaurants {
-        id
-        name
-        cuisine
-        rating
-        deliveryTime
-        isOpen
-      }
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  String searchQuery = "";
+
+  static String get restaurantsQuery => '''
+  query GetRestaurants {
+    restaurants {
+      id
+      name
+      cuisine
+      rating
+      deliveryTime
+      isOpen
+      address
+      imageUrl
+      minOrder
     }
-  ''';
+  }
+''';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('FoodExpress'),
-        backgroundColor: const Color(0xFF8B0000),
-        foregroundColor: Colors.white,
+        title: const Text("Livriny"),
         actions: [
           IconButton(
             icon: const Icon(Icons.shopping_cart),
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Panier à venir')),
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+                ),
+                builder: (_) => const CartBottomSheet(),
               );
             },
           ),
         ],
       ),
-      body: Query(
-        options: QueryOptions(
-          document: gql(restaurantsQuery),
-        ),
-        builder: (QueryResult result, {fetchMore, refetch}) {
-          // État de chargement
-          if (result.isLoading) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(color: Color(0xFF8B0000)),
-                  SizedBox(height: 20),
-                  Text('Chargement des restaurants...'),
-                ],
-              ),
-            );
-          }
-
-          // Erreur
-          if (result.hasException) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.error_outline,
-                      size: 64,
-                      color: Colors.red,
-                    ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Erreur de connexion',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      'Vérifiez que le backend tourne sur http://localhost:4001',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.grey[600]),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      'Erreur: ${result.exception.toString()}',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                    const SizedBox(height: 20),
-                    if (refetch != null)
-                      ElevatedButton(
-                        onPressed: () => refetch(),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF8B0000),
-                          foregroundColor: Colors.white,
-                        ),
-                        child: const Text('Réessayer'),
-                      ),
-                  ],
-                ),
-              ),
-            );
-          }
-
-          // Données reçues
-          final restaurants = result.data?['restaurants'] ?? [];
-
-          if (restaurants.isEmpty) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.restaurant_menu, size: 80, color: Colors.grey),
-                  SizedBox(height: 20),
-                  Text(
-                    'Aucun restaurant disponible',
-                    style: TextStyle(fontSize: 18),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: restaurants.length,
-            itemBuilder: (context, index) {
-              final restaurant = restaurants[index];
-
-              return Card(
-                elevation: 2,
-                margin: const EdgeInsets.only(bottom: 16),
-                shape: RoundedRectangleBorder(
+      body: Column(
+        children: [
+          // Champ de recherche
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: TextField(
+              decoration: InputDecoration(
+                hintText: 'Rechercher un restaurant ou cuisine...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
                 ),
-                child: // Dans home_screen.dart, remplace la ListTile actuelle :
+                filled: true,
+                fillColor: Colors.grey[200],
+              ),
+              onChanged: (value) {
+                setState(() {
+                  searchQuery = value.toLowerCase();
+                });
+              },
+            ),
+          ),
 
-                    ListTile(
-                  contentPadding: const EdgeInsets.all(16),
-                  leading: CircleAvatar(
-                    backgroundColor: const Color(0xFF8B0000),
-                    child: Text(
-                      restaurant['name'][0].toUpperCase(),
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                  ),
-                  title: Text(
-                    restaurant['name'],
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
-                  ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 8),
-                      Text(
-                        restaurant['cuisine'],
-                        style: TextStyle(color: Colors.grey[600]),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          // Note
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.star,
-                                size: 16,
-                                color: Colors.amber,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                restaurant['rating'].toStringAsFixed(1),
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(width: 16),
-                          // Temps
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.access_time,
-                                size: 16,
-                                color: Colors.grey,
-                              ),
-                              const SizedBox(width: 4),
-                              Text('${restaurant['deliveryTime']} min'),
-                            ],
-                          ),
-                          const SizedBox(width: 16),
-                          // Statut
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: restaurant['isOpen']
-                                  ? Colors.green.withOpacity(0.2)
-                                  : Colors.red.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              restaurant['isOpen'] ? 'OUVERT' : 'FERMÉ',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: restaurant['isOpen']
-                                    ? Colors.green
-                                    : Colors.red,
-                              ),
+          // Liste des restaurants
+          Expanded(
+            child: Query(
+              options: QueryOptions(document: gql(restaurantsQuery)),
+              builder: (result, {refetch, fetchMore}) {
+                if (result.isLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (result.hasException) {
+                  return Center(child: Text(result.exception.toString()));
+                }
+
+                List restaurants = result.data?['restaurants'] ?? [];
+
+                // Filtrer par nom ou cuisine
+                if (searchQuery.isNotEmpty) {
+                  restaurants = restaurants.where((r) {
+                    final name = (r['name'] ?? '').toLowerCase();
+                    final cuisine = (r['cuisine'] ?? '').toLowerCase();
+                    return name.contains(searchQuery) || cuisine.contains(searchQuery);
+                  }).toList();
+                }
+
+                if (restaurants.isEmpty) {
+                  return const Center(child: Text("Aucun restaurant trouvé"));
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.all(12),
+                  itemCount: restaurants.length,
+                  itemBuilder: (context, index) {
+                    final r = restaurants[index];
+                    return Card(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      elevation: 4,
+                      margin: const EdgeInsets.only(bottom: 15),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.all(12),
+                        leading: ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.network(
+                            r['imageUrl'] ?? '',
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Container(
+                              width: 80,
+                              height: 80,
+                              color: Colors.grey[300],
+                              child: const Icon(Icons.restaurant),
                             ),
                           ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  trailing: const Icon(
-                    Icons.arrow_forward_ios,
-                    size: 16,
-                    color: Colors.grey,
-                  ),
-                  onTap: () {
-                    // AJOUTE CETTE NAVIGATION :
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => RestaurantDetailScreen(
-                          restaurantId: restaurant['id'],
                         ),
+                        title: Text(
+                          r['name'] ?? 'Nom inconnu',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                        ),
+                        subtitle: Text("${r['cuisine'] ?? 'Cuisine inconnue'} • ⭐ ${(r['rating'] ?? 0).toStringAsFixed(1)}"),
+                        trailing: const Icon(Icons.arrow_forward_ios),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => RestaurantDetailScreen(restaurantId: r['id']),
+                            ),
+                          );
+                        },
                       ),
                     );
                   },
-                ),
-              );
-            },
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Test GraphQL réussi !'),
-              backgroundColor: Color(0xFF8B0000),
+                );
+              },
             ),
-          );
-        },
-        backgroundColor: const Color(0xFF8B0000),
-        child: const Icon(Icons.check, color: Colors.white),
+          ),
+        ],
       ),
     );
   }

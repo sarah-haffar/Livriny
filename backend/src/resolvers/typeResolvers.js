@@ -1,7 +1,7 @@
 // backend/src/resolvers/typeResolvers.js
 const typeResolvers = {
   Restaurant: {
-    menu: (parent) => parent.menuItems || [],
+    menu: (parent) => parent.menu || [],
     isFavorite: (parent, _, { db, userId }) => {
       const user = db.users.find(u => u.id === userId);
       return user ? user.favorites.includes(parent.id) : false;

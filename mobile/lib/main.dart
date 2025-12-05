@@ -1,12 +1,29 @@
-// lib/main.dart - Version Material 3
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:provider/provider.dart';
 import 'screens/home_screen.dart';
-import 'services/graphql_service.dart';
+import 'models/cart.dart';
 
 void main() async {
-  await initHiveForFlutter();
-  runApp(const MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // GraphQL client simple pour Web/Desktop
+  final HttpLink httpLink = HttpLink('http://localhost:4001/graphql');
+
+  final GraphQLClient client = GraphQLClient(
+    link: httpLink,
+    cache: GraphQLCache(),
+  );
+
+  runApp(
+    GraphQLProvider(
+      client: ValueNotifier(client),
+      child: ChangeNotifierProvider(
+        create: (_) => CartModel(),
+        child: const MyApp(),
+      ),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -14,48 +31,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GraphQLProvider(
-      client: GraphQLService.clientNotifier,
-      child: CacheProvider(
-        child: MaterialApp(
-          title: 'Livriny',
-          theme: ThemeData(
-            useMaterial3: true,
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: const Color(0xFF8B0000),
-              secondary: const Color(0xFFFFD700),
-            ),
-            appBarTheme: const AppBarTheme(
-              backgroundColor: Color(0xFF8B0000),
-              foregroundColor: Colors.white,
-              elevation: 2,
-              centerTitle: true,
-            ),
-            scaffoldBackgroundColor: Colors.grey[50],
-            cardTheme: CardThemeData(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            elevatedButtonTheme: ElevatedButtonThemeData(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF8B0000),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
-                ),
-              ),
-            ),
-          ),
-          home: const HomeScreen(),
-          debugShowCheckedModeBanner: false,
-        ),
-      ),
+    return MaterialApp(
+      title: 'Livriny',
+      theme: ThemeData(primaryColor: const Color(0xFF8B0000)),
+      home: const HomeScreen(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }

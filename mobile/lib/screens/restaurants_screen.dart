@@ -131,7 +131,7 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
           Expanded(
             child: Query(
               options: QueryOptions(
-                document: gql(GraphQLService.restaurantsQuery),
+                document: gql(GraphQLService.restaurantQuery),
                 variables: {
                   'cuisine': selectedCuisine,
                   'isOpen': isOpen,
@@ -226,7 +226,7 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
                               ),
                             ),
                           );
-                        },
+                        }, onFavoriteToggle: () {  },
                       );
                     },
                   ),

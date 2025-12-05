@@ -6,7 +6,7 @@ const Mutation = {
     const restaurant = db.getRestaurantByMenuItem(itemId);
     if (!restaurant) throw new Error('Item non trouvé');
     
-    const menuItem = restaurant.menuItems.find(item => item.id === itemId);
+    const menuItem = restaurant.menu.find(item => item.id === itemId);
     if (!menuItem || !menuItem.available) {
       throw new Error('Item indisponible');
     }
