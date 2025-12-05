@@ -1,0 +1,177 @@
+type Query {
+  restaurants(cuisine: String, isOpen: Boolean): [Restaurant!]!
+  restaurant(id: ID!): Restaurant!
+  myOrders(status: OrderStatus): [Order!]!
+  order(id: ID!): Order!
+  myCart: Cart!
+  dashboard: Dashboard!
+  myProfile: User!
+}
+
+type Mutation {
+  addToCart(itemId: ID!, quantity: Int!): Cart!
+  updateCartItem(itemId: ID!, quantity: Int!): Cart!
+  removeFromCart(itemId: ID!): Cart!
+  clearCart: Cart!
+  placeOrder(input: OrderInput!): OrderResponse!
+  cancelOrder(orderId: ID!): Order!
+  applyCoupon(code: String!): Cart!
+  removeCoupon: Cart!
+  updateProfile(input: ProfileInput!): User!
+  toggleFavorite(restaurantId: ID!): User!
+}
+
+type Subscription {
+  orderStatusChanged(orderId: ID!): Order!
+  newNotification: Notification!
+}
+
+type Restaurant {
+  id: ID!
+  name: String!
+  cuisine: String!
+  rating: Float!
+  deliveryTime: Int!
+  isOpen: Boolean!
+  address: String!
+  imageUrl: String
+  minOrder: Float!
+  menu: [MenuItem!]!
+  isFavorite: Boolean!
+}
+
+type MenuItem {
+  id: ID!
+  name: String!
+  description: String
+  price: Float!
+  category: String!
+  available: Boolean!
+}
+
+type Order {
+  id: ID!
+  items: [OrderItem!]!
+  subtotal: Float!
+  deliveryFee: Float!
+  tax: Float!
+  total: Float!
+  status: OrderStatus!
+  restaurant: Restaurant!
+  deliveryAddress: String!
+  createdAt: String!
+  estimatedDelivery: String!
+  driver: Driver
+}
+
+type OrderItem {
+  itemId: ID!
+  name: String!
+  quantity: Int!
+  price: Float!
+}
+
+type Cart {
+  items: [CartItem!]!
+  subtotal: Float!
+  deliveryFee: Float!
+  tax: Float!
+  total: Float!
+  restaurant: Restaurant
+  coupon: Coupon
+}
+
+type CartItem {
+  itemId: ID!
+  name: String!
+  quantity: Int!
+  price: Float!
+}
+
+type User {
+  id: ID!
+  name: String!
+  email: String!
+  phone: String
+  address: String
+  favorites: [Restaurant!]!
+}
+
+type Dashboard {
+  activeOrders: [Order!]!
+  recentOrders: [Order!]!
+  favoriteRestaurants: [Restaurant!]!
+  cart: Cart
+  notifications: [Notification!]!
+}
+
+type Driver {
+  id: ID!
+  name: String!
+  phone: String!
+  rating: Float!
+  vehicle: String!
+  location: Location
+}
+
+type Location {
+  lat: Float!
+  lng: Float!
+}
+
+type Notification {
+  id: ID!
+  type: String!
+  title: String!
+  message: String!
+  read: Boolean!
+  createdAt: String!
+}
+
+type Coupon {
+  code: String!
+  discount: Float!
+  discountType: String
+  minOrder: Float!
+}
+
+type OrderResponse {
+  order: Order!
+  paymentIntent: PaymentIntent
+}
+
+type PaymentIntent {
+  id: String!
+  clientSecret: String!
+  amount: Float!
+  currency: String!
+}
+
+input OrderInput {
+  restaurantId: ID!
+  items: [OrderItemInput!]!
+  deliveryAddress: String!
+  specialInstructions: String
+}
+
+input OrderItemInput {
+  itemId: ID!
+  quantity: Int!
+}
+
+input ProfileInput {
+  name: String
+  email: String
+  phone: String
+  address: String
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  ON_THE_WAY
+  DELIVERED
+  CANCELLED
+}

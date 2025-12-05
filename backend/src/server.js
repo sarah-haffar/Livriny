@@ -1,64 +1,34 @@
 // backend/src/server.js
 const { ApolloServer } = require('apollo-server');
-const { PubSub } = require('graphql-subscriptions');
+const fs = require('fs');
+const path = require('path');
 
-// Données mockées temporaires
-const mockData = {
-  restaurants: [
-    {
-      id: "1",
-      name: "Pizza Napoli",
-      cuisine: "Italien",
-      rating: 4.5,
-      deliveryTime: 25,
-      isOpen: true
-    },
-    {
-      id: "2", 
-      name: "Sushi Zen",
-      cuisine: "Japonais", 
-      rating: 4.7,
-      deliveryTime: 35,
-      isOpen: true
-    }
-  ]
-};
+// 1. Lire le schéma GraphQL
+const typeDefs = fs.readFileSync(
+  path.join(__dirname, 'schema/schema.graphql'),
+  'utf8'
+);
 
-// Schema GraphQL de base
-const typeDefs = `
-  type Query {
-    restaurants: [Restaurant!]!
-    restaurant(id: ID!): Restaurant
-  }
+// 2. Importer les résolveurs
+const resolvers = require('./resolvers');
 
-  type Restaurant {
-    id: ID!
-    name: String!
-    cuisine: String!
-    rating: Float!
-    deliveryTime: Int!
-    isOpen: Boolean!
-  }
-`;
+// 3. Importer les données
+const mockData = require('./data/mockData');
 
-// Résolveurs de base
-const resolvers = {
-  Query: {
-    restaurants: () => mockData.restaurants,
-    restaurant: (_, { id }) => mockData.restaurants.find(r => r.id === id)
-  }
-};
-
-// Créer le serveur
+// 4. Créer le serveur
 const server = new ApolloServer({
   typeDefs,
   resolvers,
+  context: ({ req }) => ({
+    userId: req.headers.authorization || 'user1',
+    db: mockData
+  }),
   introspection: true,
   playground: true
 });
 
-// Démarrer sur le port 4001 👈 CHANGEMENT ICI
+// 5. Démarrer
 server.listen({ port: 4001 }).then(({ url }) => {
-  console.log(`🚀 Serveur GraphQL Livriny prêt à: ${url}`);
-  console.log(`🔗 Accédez au Playground: ${url}`);
+  console.log(`🚀 FoodExpress Server prêt à: ${url}`);
+  console.log('✅ Structure modulaire propre !');
 });
